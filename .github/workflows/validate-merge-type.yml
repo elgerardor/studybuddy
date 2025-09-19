@@ -1,0 +1,21 @@
+name: Enforce Merge Method
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  check-merge-method:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check merge type for protected branches
+        run: |
+          TARGET_BRANCH="${{ github.event.pull_request.base.ref }}"
+          MERGE_METHOD="${{ github.event.pull_request.merge_commit_sha }}"
+          if [[ "$TARGET_BRANCH" == "QA" || "$TARGET_BRANCH" == "master" ]]; then
+            if [[ -z "$MERGE_METHOD" ]]; then
+              echo "ERROR: Squash merges are not allowed on $TARGET_BRANCH. Please use rebase or fast-forward."
+              exit 1
+            fi
+          fi
